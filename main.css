@@ -1,0 +1,82 @@
+@font-face {
+    font-family: "Montserrat";
+    src: url(/public/fonts/Montserrat-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: "Raleway";
+    src: url(/public/fonts/Raleway-VariableFont_wght.ttf);
+}
+
+body {
+    background-color: rgb(37, 37, 37);
+}
+
+h1 {
+    text-align: center;
+    color: #ffffff;
+    font-size: 50px;
+    font-family: "Montserrat", sans-serif;
+}
+
+p {
+    color: #ffffff;
+    font-family: "Montserrat";
+    text-align: center;
+    font-size: 25px
+}
+
+a {
+    color: rgb(59, 200, 243);
+    text-decoration: none;
+}
+
+nav {
+    text-align: right;
+    font-family: "Montserrat";
+    font-size: 15px;
+    padding: 15px;
+    background-color: rgb(71, 60, 60);
+    border-radius: 30px;
+}
+
+form {
+    text-align: center;
+    font-family: "Montserrat";
+    font-size: 20px;
+    color: #ffffff;
+}
+
+button {
+    font-family: "Montserrat";
+    font-size: 20px;
+    background-color: rgb(0, 195, 255);
+    border: none;
+    border-radius: 10px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    color: #ffffff;
+    font-family: "Montserrat";
+}
+
+p.contact-footnote {
+    font-size: 20px;
+    text-align: center;
+    color: #ffffff;
+    font-family: "Montserrat";
+}
+
+span.quote {
+    font-family: "Montserrat", sans-serif;
+    font-size: 15px;
+    color: #ffffff;
+    text-align: center;
+    display: block;
+    margin-top: 20px;
+    font-style: italic;
+}
