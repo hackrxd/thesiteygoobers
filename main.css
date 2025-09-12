@@ -26,6 +26,11 @@ p {
     font-size: 25px
 }
 
+p.quote {
+    font-style: italic;
+    font-size: 20px;
+}
+
 a {
     color: rgb(59, 200, 243);
     text-decoration: none;
