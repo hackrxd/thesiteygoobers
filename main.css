@@ -85,3 +85,10 @@ span.quote {
     margin-top: 20px;
     font-style: italic;
 }
+
+iframe {
+    display: block;
+    margin: 20px auto;
+    border: none;
+    border-radius: 10px;
+}

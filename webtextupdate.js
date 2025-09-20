@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Array.isArray(data) && data.length > 0) {
                 // Get the latest message
                 const latest = data[data.length - 1];
-                quoteElem.textContent = `${latest.message || JSON.stringify(latest)} - willow ai`;
+                quoteElem.textContent = `"${latest.message || JSON.stringify(latest)}" - ${latest.author}`;
             } else {
                 quoteElem.textContent = 'No quote found.';
             }

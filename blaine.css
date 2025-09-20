@@ -1,0 +1,35 @@
+@font-face {
+    font-family: "Montserrat";
+    src: url(/public/fonts/Montserrat-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: "Raleway";
+    src: url(/public/fonts/Raleway-VariableFont_wght.ttf);
+}
+
+
+h1 {
+    text-align: center;
+    font-family: "Comic Sans MS", sans-serif;
+}
+
+body {
+    background-color: #ffffff8f;
+}
+
+p {
+    font-family: "Comic Sans MS", sans-serif;
+}
+
+a {
+    color: rgb(59, 200, 243);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+    font-size: 20px;
+    color: rgb(255, 123, 0);
+}
+
