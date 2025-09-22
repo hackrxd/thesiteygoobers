@@ -111,7 +111,7 @@ app.get('/events/anonymous', (req, res) => {
     res.sendFile(path.join(__dirname, 'anonymousanomaly.html'));
 });
 
-res.get('/events', (req, res) => {
+app.get('/events', (req, res) => {
     res.sendFile(path.join(__dirname, 'events.html'));
 });
 
