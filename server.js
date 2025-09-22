@@ -107,6 +107,9 @@ app.get('/blaine', (req, res) => {
     res.sendFile(path.join(__dirname, 'blaineisverycool.html'));
 });
 
+app.get('/events/anonymous', (req, res) => {
+    res.sendFile(path.join(__dirname, 'anonymousanomaly.html'));
+});
 
 // API endpoint to receive POST requests and forward to webtextupdate.js
 

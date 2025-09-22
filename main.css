@@ -8,6 +8,10 @@
     src: url(/public/fonts/Raleway-VariableFont_wght.ttf);
 }
 
+@font-face {
+    font-family: "Audiowide";
+    src: url(/public/fonts/Audiowide-Regular.ttf);
+}
 body {
     background-color: rgb(37, 37, 37);
 }
@@ -91,4 +95,12 @@ iframe {
     margin: 20px auto;
     border: none;
     border-radius: 10px;
+}
+
+div.timer {
+    text-align: center;
+    font-family: "Audiowide", sans-serif;
+    color: #ffffff;
+    font-size: 30px;
+    margin-top: 40px;
 }
