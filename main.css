@@ -104,3 +104,21 @@ div.timer {
     font-size: 30px;
     margin-top: 40px;
 }
+
+div.event {
+    text-align: left;
+    font-family: "Montserrat", sans-serif;
+    color: #ffffff;
+    font-size: 20px;
+    margin-top: 20px;
+    padding: 10px 10px;
+    background-color: rgb(29, 26, 26);
+    border-radius: 20px;
+}
+
+div.event p {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 10px;
+    text-align: left;
+}
