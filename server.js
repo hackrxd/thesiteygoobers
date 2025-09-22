@@ -111,6 +111,10 @@ app.get('/events/anonymous', (req, res) => {
     res.sendFile(path.join(__dirname, 'anonymousanomaly.html'));
 });
 
+res.get('/events', (req, res) => {
+    res.sendFile(path.join(__dirname, 'events.html'));
+});
+
 // API endpoint to receive POST requests and forward to webtextupdate.js
 
 // Save incoming webtext data to JSON file
