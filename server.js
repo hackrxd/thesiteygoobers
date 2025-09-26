@@ -24,7 +24,11 @@ const webtextdata = require('./webtextdata.js');
 app.use(session({
     secret: process.env.SESSION_SECRET || 'a-very-secret-key',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -39,14 +43,46 @@ passport.deserializeUser((obj, done) => {
 });
 
 // Configure the Discord strategy
+console.log('Configuring Discord strategy with:', {
+    clientID: process.env.CLIENT_ID,
+    callbackURL: process.env.CALLBACK_URL || 'http://localhost:3000/auth/discord/callback'
+});
+
 passport.use(new DiscordStrategy({
-    clientID: process.env.CLIENT_ID, // Will now pull from your .env file
-    clientSecret: process.env.CLIENT_SECRET, // Will now pull from your .env file
-    callbackURL: 'http://localhost:3000/auth/discord/callback',
-    scope: ['identify', 'guilds']
-}, (accessToken, refreshToken, profile, done) => {
-    return done(null, profile);
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: 'http://localhost:3000/auth/discord/callback', // Use hardcoded value for now
+    scope: ['identify'],
+    state: false, // Disable state verification temporarily for testing
+    passReqToCallback: true
+}, async (req, accessToken, refreshToken, params, profile, done) => {
+    try {
+        console.log('Auth callback received');
+        console.log('Params:', params);
+        console.log('Profile:', profile);
+        
+        if (!profile) {
+            console.log('No profile received');
+            return done(new Error('No profile received from Discord'), null);
+        }
+
+        // Store tokens in the user profile
+        profile.accessToken = accessToken;
+        profile.refreshToken = refreshToken;
+        return done(null, profile);
+    } catch (err) {
+        console.error('Error in Discord strategy:', err);
+        return done(err, null);
+    }
 }));
+
+// Authentication middleware
+function isAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.status(401).json({ error: 'Not authenticated' });
+}
 
 // --- Static File Serving (Express's built-in way) ---
 // Serve static files from the root of your project
@@ -55,14 +91,35 @@ app.use('/uploads', express.static('uploads'));
 
 // --- Route Handling ---
 // Discord Authentication Routes
-app.get('/auth/discord', passport.authenticate('discord'));
-
-app.get('/auth/discord/callback', 
-    passport.authenticate('discord', { failureRedirect: '/login' }),
-    (req, res) => {
-        res.redirect('/'); 
+app.get('/auth/discord', (req, res, next) => {
+    // Store the return URL if provided
+    if (req.query.returnTo) {
+        req.session.returnTo = req.query.returnTo;
     }
-);
+    passport.authenticate('discord', {
+        prompt: 'consent'
+    })(req, res, next);
+});
+
+app.get('/auth/discord/callback', (req, res, next) => {
+    console.log('Received callback request');
+    console.log('Query params:', req.query);
+    
+    passport.authenticate('discord', { 
+        failureRedirect: '/login',
+        failureMessage: true
+    })(req, res, (err) => {
+        if (err) {
+            console.error('Authentication error:', err);
+            return res.redirect('/login?error=' + encodeURIComponent(err.message));
+        }
+        
+        console.log('Authentication successful');
+        const returnTo = req.session.returnTo || '/';
+        delete req.session.returnTo;
+        res.redirect(returnTo);
+    });
+});
 
 app.get('/profile', (req, res) => {
     if (req.isAuthenticated()) {
@@ -97,6 +154,21 @@ app.get('/staff/skitters', (req, res) => {
 
 app.get('/staff/hackrxd', (req, res) => {
     res.sendFile(path.join(__dirname, 'hackr.html'));
+});
+
+// User status endpoint
+app.get('/api/user', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.json({
+            isAuthenticated: true,
+            username: req.user.username,
+            discriminator: req.user.discriminator,
+            id: req.user.id,
+            avatar: req.user.avatar
+        });
+    } else {
+        res.json({ isAuthenticated: false });
+    }
 });
 
 app.get('/upload', (req, res) => {

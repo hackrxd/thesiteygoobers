@@ -122,3 +122,11 @@ div.event p {
     margin-bottom: 10px;
     text-align: left;
 }
+
+img.alanchannelss {
+    display: block;
+    margin: 20px auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
