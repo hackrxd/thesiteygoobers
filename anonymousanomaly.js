@@ -4,7 +4,7 @@ const cron = require('node-cron');
 // Replace with your bot's token and other IDs
 const BOT_TOKEN = 'MTQxOTc4NjcyMDM5NTc4ODM2MA.GEYIZT.Ayhh6MC0EsPIbSMtsBRG25ww-aSE9u3O7KeodQ';
 const GUILD_ID = '1294422826274652160';
-const PARTICIPANT_ROLE_ID = '1419776561527132332';
+const PARTICIPANT_ROLE_ID = '1419797988833886289';
 const POSTING_CHANNEL_ID = '1419788588635127948';
 
 const client = new Client({ 
@@ -67,7 +67,7 @@ async function dailySelection() {
 
         try {
             await userAttempt.send({ 
-                content: "You've been picked to anonymously say something. This may range from confessions to something said just to make people laugh. The server's rules still " 
+                content: "You've been picked to anonymously say something. This may range from confessions to something said just to make people laugh. The server's rules still apply." 
             });
             console.log(`DM sent successfully to ${userAttempt.user.tag}. Waiting for a response...`);
             chosenUser = userAttempt;
@@ -97,6 +97,9 @@ async function dailySelection() {
             await postingChannel.send({
                 content: `Anonymous Posted:\n${userMessage.content}`
             });
+            await chosenUser.send({
+                content: `Posted to <#1422666459489763460>.`
+            })
             console.log(`Posted message from ${chosenUser.user.tag} to the channel.`);
         } else {
             console.log("Posting channel not found or is not a text channel.");

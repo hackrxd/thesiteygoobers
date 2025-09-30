@@ -1,5 +1,6 @@
-// Set the date we're counting down to in UTC
-var countDownDate = new Date("2025-10-01T00:00:00Z").getTime();
+// Set the date we're counting down to in UTC.
+// Midnight EDT (00:00:00) on 2025-10-01 is 04:00:00 UTC on the same date.
+var countDownDate = new Date("2025-10-01T04:00:00Z").getTime();
 
 // Update the count down every 1 second
 var x = setInterval(function() {
@@ -16,12 +17,31 @@ var x = setInterval(function() {
   var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
   var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-  // Display the result in the element with id="timer"
-  document.getElementById("timer").innerHTML = days + " Days, " + hours + " hours, " + minutes + " minutes, " + seconds + " seconds ";
+  // Variable to hold the final display string
+  let timerOutput = ""; 
 
-  // If the count down is finished, write some text
+  // Check if the count down is finished first
   if (distance < 0) {
     clearInterval(x);
-    document.getElementById("timer").innerHTML = "EVENT STARTED";
+    timerOutput = "EVENT ONGOING";
+  } 
+  // Else, determine the display format based on remaining time
+  else if (days > 0) {
+    // Show full format (Days, Hours, Minutes, Seconds)
+    timerOutput = days + " days, " + hours + " hours, " + minutes + " minutes, " + seconds + " seconds";
+  } else if (hours > 0) {
+    // Show reduced format (Hours, Minutes, Seconds)
+    timerOutput = hours + " hours, " + minutes + " minutes, " + seconds + " seconds";
+  } else if (minutes > 0) {
+    // Show final minute format (Minutes, Seconds)
+    timerOutput = minutes + " minutes, " + seconds + " seconds";
+  } else {
+    // Show final seconds format (Seconds)
+    // This will run when days, hours, and minutes are all 0
+    timerOutput = seconds + " seconds";
   }
+  
+  // Display the result in the element with id="timer"
+  document.getElementById("timer").innerHTML = timerOutput;
+  
 }, 1000);
