@@ -5,7 +5,7 @@ const cron = require('node-cron');
 const BOT_TOKEN = 'MTQxOTc4NjcyMDM5NTc4ODM2MA.GEYIZT.Ayhh6MC0EsPIbSMtsBRG25ww-aSE9u3O7KeodQ';
 const GUILD_ID = '1294422826274652160';
 const PARTICIPANT_ROLE_ID = '1419797988833886289';
-const POSTING_CHANNEL_ID = '1419788588635127948';
+const POSTING_CHANNEL_ID = '1422666459489763460';
 
 const client = new Client({ 
     intents: [
@@ -20,9 +20,9 @@ client.on('ready', () => {
     console.log(`Successfully initiated Anonymous Anomaly event.`);
     
     // Set the start and end dates for the event in UTC
-    const startDate = new Date('2025-09-27T00:00:00Z');
+    const startDate = new Date('2025-10-01T00:00:00Z');
     // Set the end date to the beginning of the day AFTER the final run
-    const endDate = new Date('2025-09-30T00:00:00Z');
+    const endDate = new Date('2025-10-11T00:00:00Z');
 
     // Schedule the daily selection task to run at 12:00 AM every day
     cron.schedule('0 0 * * *', async () => {
@@ -95,7 +95,7 @@ async function dailySelection() {
         const postingChannel = await client.channels.fetch(POSTING_CHANNEL_ID);
         if (postingChannel && postingChannel.type === ChannelType.GuildText) {
             await postingChannel.send({
-                content: `Anonymous Posted:\n${userMessage.content}`
+                content: `${userMessage.content}`
             });
             await chosenUser.send({
                 content: `Posted to <#1422666459489763460>.`

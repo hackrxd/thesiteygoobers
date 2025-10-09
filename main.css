@@ -38,6 +38,7 @@ p.quote {
 a {
     color: rgb(59, 200, 243);
     text-decoration: none;
+    padding: 2px;
 }
 
 nav {
