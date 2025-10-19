@@ -43,23 +43,28 @@ passport.deserializeUser((obj, done) => {
 });
 
 // Configure the Discord strategy
+// Prefer using env vars; allow skipping Discord auth if not configured so the server can run
+const discordClientId = process.env.CLIENT_ID;
+const discordClientSecret = process.env.CLIENT_SECRET;
+const discordCallbackURL = process.env.CALLBACK_URL || 'http://localhost:3000/auth/discord/callback';
+
 console.log('Configuring Discord strategy with:', {
-    clientID: process.env.CLIENT_ID,
-    callbackURL: process.env.CALLBACK_URL || 'http://localhost:3000/auth/discord/callback'
+    clientID: discordClientId ? `${discordClientId.slice(0, 4)}...${discordClientId.slice(-4)}` : undefined,
+    callbackURL: discordCallbackURL
 });
 
-passport.use(new DiscordStrategy({
-    clientID: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: 'http://localhost:3000/auth/discord/callback', // Use hardcoded value for now
-    scope: ['identify'],
-    state: false, // Disable state verification temporarily for testing
-    passReqToCallback: true
-}, async (req, accessToken, refreshToken, params, profile, done) => {
+if (discordClientId && discordClientSecret) {
+    passport.use(new DiscordStrategy({
+        clientID: discordClientId,
+        clientSecret: discordClientSecret,
+        callbackURL: discordCallbackURL,
+        scope: ['identify'],
+        // state: false, // usually leave state enabled for security
+        passReqToCallback: true
+    }, async (req, accessToken, refreshToken, profile, done) => {
     try {
         console.log('Auth callback received');
-        console.log('Params:', params);
-        console.log('Profile:', profile);
+            console.log('Profile:', profile);
         
         if (!profile) {
             console.log('No profile received');
@@ -75,6 +80,10 @@ passport.use(new DiscordStrategy({
         return done(err, null);
     }
 }));
+
+} else {
+    console.warn('Discord CLIENT_ID and/or CLIENT_SECRET not set. Discord authentication routes will be unavailable until these are provided. Create a .env file or set CLIENT_ID and CLIENT_SECRET in the environment.');
+}
 
 // Authentication middleware
 function isAuthenticated(req, res, next) {

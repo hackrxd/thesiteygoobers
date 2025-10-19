@@ -103,6 +103,16 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+const botToken = process.env.DISCORD_TOKEN || process.env.BOT_TOKEN || process.env.TOKEN;
+
+if (!botToken || typeof botToken !== 'string' || botToken.trim() === '') {
+    console.warn('Discord bot token not provided. Bot will not log in. Set DISCORD_TOKEN in your environment to enable bot functionality.');
+} else {
+    client.login(botToken).then(() => {
+        console.log('Discord bot login initiated.');
+    }).catch(err => {
+        console.error('Failed to login Discord bot:', err?.message || err);
+    });
+}
 
 module.exports = { notifyUpload };
