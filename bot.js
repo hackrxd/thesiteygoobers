@@ -46,7 +46,7 @@ client.once('ready', () => {
 function notifyUpload(filename, uploader, fileUrl) {
     const channel = client.channels.cache.get(NOTIFY_CHANNEL_ID);
     if (channel) {
-        channel.send(`:inbox_tray: **File uploaded:** [${filename}](${fileUrl}) by ${uploader}`);
+        channel.send(`:inbox_tray: **File uploaded:** [${filename}](http://hackrai.duckdns.org:3000${fileUrl}) by ${uploader}`);
     }
 }
 

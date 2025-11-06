@@ -1,16 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <link href="main.css" rel="stylesheet">
+        <link href="/main.css" rel="stylesheet">
         <title>Upload - The Goofy Goobers</title>
     </head>
     <body>
-        <form>
-                <h1>Upload a File</h1>
-                <input type="file" name="my-file" required>
-                <button type="submit">Upload</button>
-                <!-- The form posts to /upload, matching the backend route -->
-            </form>
+        <form id="upload-form" method="POST" action="/upload" enctype="multipart/form-data">
+            <h1>Upload a File</h1>
+            <input type="file" class="file" name="my-file" required>
+            <button type="submit">Upload</button>
+            <!-- The form posts to /upload, matching the backend route -->
         </form>
+        <div id="upload-status" aria-live="polite" style="color:green" class="upload-status"></div>
+
+        <script>
+            // Optional: intercept the form to show a nicer status message
+            (function(){
+                const form = document.getElementById('upload-form');
+                const status = document.getElementById('upload-status');
+                form.addEventListener('submit', async (e) => {
+                    // Let the form submit normally so server returns the upload page
+                    // If you prefer AJAX uploads, uncomment the block below and remove the 'return'.
+                    /*return;*/
+
+                    
+                    e.preventDefault();
+                    let uploading = true;
+                    status.textContent = 'Uploading';
+                    (async function showDots() {
+                        while (uploading) {
+                            status.textContent += '.';
+                            await new Promise(r => setTimeout(r, 500));
+                        }
+                    })();
+                    const data = new FormData(form);
+                    try {
+                        const res = await fetch(form.action, { method: 'POST', body: data });
+                        uploading = false;
+                        if (!res.ok) {
+                            const errText = await res.text();
+                            status.textContent = 'Upload failed: ' + errText;
+                            status.style.color = 'red';
+                            return;
+                        }
+
+                        // Parse JSON response with filename and URL
+                        let body;
+                        try {
+                            body = await res.json();
+                        } catch (e) {
+                            status.textContent = 'Upload succeeded (no JSON response)';
+                            return;
+                        }
+
+                        // Build a friendly message including the original filename and link
+                        status.style.color = 'green';
+                        const name = body.originalName || body.storedName || 'file';
+                        const url = body.fileUrl || (`/uploads/${body.storedName}`);
+                        status.innerHTML = `Upload successful: <strong>${escapeHtml(name)}</strong> — <a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(url)}</a>`;
+                    } catch (err) {
+                        uploading = false;
+                        status.textContent = 'Upload failed: ' + err.message;
+                        status.style.color = 'red';
+                    }
+                    
+                });
+            })();
+            // Small helper to escape HTML when inserting user-controlled strings
+            function escapeHtml(unsafe) {
+                return String(unsafe)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+        </script>
     </body>
 </html>

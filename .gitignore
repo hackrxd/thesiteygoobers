@@ -1,4 +1,8 @@
 /.env
 /node_modules
 /package-lock.json
-files/win10.iso
+win10.iso
+uploads/
+files/
+__pycache__/
+gitignore/

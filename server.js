@@ -1,6 +1,7 @@
 // Import the necessary modules.
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const uploadRouter = require('./upload.js');
 const session = require('express-session');
 const passport = require('passport');
@@ -17,6 +18,129 @@ const port = 3000;
 // Create an Express application.
 const app = express();
 app.use(express.json()); // For parsing JSON bodies
+
+// Simple ANSI color helper (no extra dependency)
+function colorize(text, color) {
+    const codes = {
+        reset: '\x1b[0m',
+        bold: '\x1b[1m',
+        dim: '\x1b[2m',
+        red: '\x1b[31m',
+        green: '\x1b[32m',
+        yellow: '\x1b[33m',
+        blue: '\x1b[34m',
+        magenta: '\x1b[35m',
+        cyan: '\x1b[36m'
+    };
+    const open = codes[color] || '';
+    const close = codes.reset;
+    return open + text + close;
+}
+
+// Enhanced request logging middleware with colorized output and download progress
+app.use((req, res, next) => {
+    const start = process.hrtime.bigint();
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
+    const user = (req && req.user && (req.user.username || req.user.id)) ? (req.user.username || req.user.id) : 'anonymous';
+    const method = req.method;
+    const url = req.originalUrl || req.url;
+
+    // Track streaming bytes written for downloads
+    let bytesSent = 0;
+    let totalBytes = null;
+    let progressInterval = null;
+    let downloadDetected = false;
+
+    // If this is a GET for a file under /uploads, try to read its size from disk so we can show percentage
+    if (method === 'GET' && url.startsWith('/uploads')) {
+        const filePath = path.join(__dirname, url);
+        fs.stat(filePath, (err, stats) => {
+            if (!err && stats && typeof stats.size === 'number') {
+                totalBytes = stats.size;
+            }
+        });
+    }
+
+    // Save originals
+    const origWrite = res.write;
+    const origEnd = res.end;
+
+    // Wrap write to count bytes
+    res.write = function (chunk, encoding, callback) {
+        try {
+            const len = chunk ? Buffer.byteLength(chunk instanceof Buffer ? chunk : String(chunk), encoding) : 0;
+            bytesSent += len;
+        } catch (e) {
+            // ignore
+        }
+
+        // Try to get total bytes from header if available
+        if (!totalBytes) {
+            const cl = res.getHeader && res.getHeader('content-length');
+            totalBytes = cl ? parseInt(cl, 10) : null;
+        }
+
+        // If this looks like a download (uploads folder or content-disposition) start progress logs
+        if (!downloadDetected && (url.startsWith('/uploads') || (res.getHeader && res.getHeader('content-disposition')) || totalBytes)) {
+            downloadDetected = true;
+            progressInterval = setInterval(() => {
+                const pct = totalBytes ? ` (${((bytesSent/totalBytes)*100).toFixed(1)}%)` : '';
+                console.log(colorize(`[DOWNLOAD] ${method} ${url} - ${bytesSent} bytes${totalBytes ? ` / ${totalBytes}` : ''}${pct}`,'cyan'));
+            }, 1000);
+        }
+
+        return origWrite.apply(res, arguments);
+    };
+
+    // Wrap end to finalize logs
+    res.end = function (chunk, encoding, callback) {
+        if (chunk) {
+            try {
+                const len = Buffer.byteLength(chunk instanceof Buffer ? chunk : String(chunk), encoding);
+                bytesSent += len;
+            } catch (e) {}
+        }
+
+        if (!totalBytes) {
+            const cl = res.getHeader && res.getHeader('content-length');
+            totalBytes = cl ? parseInt(cl, 10) : null;
+        }
+
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+
+        const end = process.hrtime.bigint();
+        const durationMs = Number(end - start) / 1e6;
+        const time = new Date().toISOString();
+        const status = res.statusCode || 0;
+        const statusColor = status >= 500 ? 'red' : (status >= 400 ? 'yellow' : 'green');
+
+        console.log(`${colorize(time,'dim')} ${colorize(method,'magenta')} ${colorize(url,'bold')} ${colorize(String(status), statusColor)} ${colorize(durationMs.toFixed(2)+'ms','dim')} - ${ip} - user: ${user}`);
+
+        if (downloadDetected) {
+            const pctComplete = totalBytes ? ` (${((bytesSent/totalBytes)*100).toFixed(1)}%)` : '';
+            console.log(colorize(`[DOWNLOAD COMPLETE] ${method} ${url} - ${bytesSent} bytes${pctComplete} in ${durationMs.toFixed(2)}ms`,'cyan'));
+        }
+
+        return origEnd.apply(res, arguments);
+    };
+
+    // Ensure interval cleared on close
+    res.on('close', () => {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+            console.log(colorize(`[DOWNLOAD ABORTED] ${method} ${url} - ${bytesSent} bytes sent`,'yellow'));
+        }
+    });
+
+    // Initial log
+    console.log(colorize(`${new Date().toISOString()} ${method} ${url} - started - ${ip} - user: ${user}`,'dim'));
+
+    next();
+});
 
 const webtextdata = require('./webtextdata.js');
 

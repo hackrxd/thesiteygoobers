@@ -131,3 +131,16 @@ img.alanchannelss {
     height: auto;
     border-radius: 10px;
 }
+
+a.vanilla {
+    color: #000000;
+    text-decoration: none;
+    padding: 2px;
+}
+
+div.upload-status {
+    text-align: center;
+    font-family: "Montserrat", sans-serif;
+    font-size: 20px;
+    margin-top: 20px;
+}

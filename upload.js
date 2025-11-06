@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const { notifyUpload } = require('./bot.js');
 
 const router = express.Router();
 
@@ -32,42 +33,32 @@ const storage = multer.diskStorage({
         cb(null, uniqueSuffix + '-' + sanitizedFilename);
     }
 });
+
 const upload = multer({ storage: storage });
 
-// NEW: Middleware to check if the user is authenticated
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-    // If not authenticated, redirect to the login page or send an error
-    res.redirect('/auth/discord');
-}
+// NOTE: Uploads used to require Discord authentication. We're allowing anonymous uploads
+// now. This route no longer applies server-side limits or mime-type filtering
+// (per your request: "no limits"). Be aware this increases risk of abuse; consider
+// adding protections (rate-limiting, virus scanning, etc.) if this is public.
 
 // Define the POST route for file uploads
-// Note the `isLoggedIn` middleware added here before the `upload.single` call
-router.post('/', isLoggedIn, upload.single('my-file'), (req, res) => {
+// Note: this route accepts anonymous uploads and returns JSON with filename and URL
+router.post('/', upload.single('my-file'), (req, res) => {
     if (!req.file) {
-        return res.status(400).send('No file was uploaded.');
+        return res.status(400).json({ error: 'No file was uploaded.' });
     }
-    
+
     const fileUrl = `/uploads/${req.file.filename}`;
-    
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Upload Complete</title>
-        </head>
-        <body>
-            <h1>File Upload Successful!</h1>
-            <p>Your file has been saved to the server.</p>
-            <p>You can view it here: <a href="${fileUrl}">${req.file.originalname}</a></p>
-            <p><a href="/upload">Upload another file</a></p>
-        </body>
-        </html>
-    `);
+    const uploader = (req.isAuthenticated && req.user) ? `${req.user.username || req.user.id}` : 'anonymous';
+    console.log(`Upload saved: ${req.file.filename} (original: ${req.file.originalname}) by ${uploader}`);
+    notifyUpload(req.file.originalname, uploader, fileUrl);
+    // Respond with JSON containing the original filename and the accessible URL
+    res.json({
+        originalName: req.file.originalname,
+        storedName: req.file.filename,
+        fileUrl: fileUrl,
+        uploader: uploader
+    });
 });
 
 module.exports = router;
