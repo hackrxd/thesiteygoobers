@@ -12,6 +12,7 @@
             <!-- The form posts to /upload, matching the backend route -->
         </form>
         <div id="upload-status" aria-live="polite" style="color:green" class="upload-status"></div>
+        <div id="info" class="upload-information"></div>
 
         <script>
             // Optional: intercept the form to show a nicer status message
@@ -27,6 +28,14 @@
                     e.preventDefault();
                     let uploading = true;
                     status.textContent = 'Uploading';
+                    (async function showInfo() {
+                        while (uploading) {
+                            let timer = 0;
+                            document.getElementById('info').textContent = `Uploading (elapsed time: ${timer} seconds)`;
+                            await new Promise(r => setTimeout(r, 10));
+                            timer += 0.01;
+                        }
+                    })();
                     (async function showDots() {
                         while (uploading) {
                             status.textContent += '.';

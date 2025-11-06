@@ -49,9 +49,9 @@ router.post('/', upload.single('my-file'), (req, res) => {
     }
 
     const fileUrl = `/uploads/${req.file.filename}`;
-    const uploader = (req.isAuthenticated && req.user) ? `${req.user.username || req.user.id}` : 'anonymous';
+    const uploader = (req.isAuthenticated && req.user) ? `${req.user.id}` : 'anonymous';
     console.log(`Upload saved: ${req.file.filename} (original: ${req.file.originalname}) by ${uploader}`);
-    notifyUpload(req.file.originalname, uploader, fileUrl);
+    notifyUpload(req.file.originalname, req.user.userid, fileUrl);
     // Respond with JSON containing the original filename and the accessible URL
     res.json({
         originalName: req.file.originalname,
