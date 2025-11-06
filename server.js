@@ -8,7 +8,7 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const bot = require('./bot.js'); // Ensure the bot is started
-const anonymous = require('./anonymousanomaly.js');
+//const anonymous = require('./anonymousanomaly.js');
 // --- Add this line here ---
 dotenv.config();
 
@@ -275,10 +275,6 @@ app.get('/logout', (req, res) => {
 // Regular Routes
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.get('/staff', (req, res) => {
-    res.sendFile(path.join(__dirname, 'staff.html'));
 });
 
 app.get('/staff/skitters', (req, res) => {
