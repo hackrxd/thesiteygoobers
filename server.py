@@ -1,5 +1,6 @@
 import os
 import flask
+import random
 
 app = flask.Flask(__name__, static_folder='public')
 
@@ -23,6 +24,16 @@ def anonymous_event():
 def members():
     return flask.send_file('members/index.html')
 
+
+@app.route('/api/cat')
+def cat():
+    cat_gifs = []
+    for i in os.listdir('public/cats'):
+        cat_gifs.append(i)
+    print(cat_gifs)
+    cat = random.choice(cat_gifs)
+    fullcat = f"http://hackrai.duckdns.org:3000/public/cats/{cat}"
+    return fullcat
 
 # Run the app
 if __name__ == '__main__':

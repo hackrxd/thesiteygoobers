@@ -6,3 +6,6 @@ uploads/
 files/
 __pycache__/
 gitignore/
+bot/config/*
+bot/logs
+public/cats
