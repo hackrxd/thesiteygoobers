@@ -142,7 +142,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const webtextdata = require('./public/scripts/webtextdata.js');
+const webtextdata = require('/webtextdata.js');
 
 // --- NEW AUTHENTICATION SETUP ---
 app.use(session({
