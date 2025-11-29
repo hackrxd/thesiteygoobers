@@ -36,7 +36,10 @@ async def on_message(message):
         content = message.content
         server.updateQuote(content, author)
     if message.channel.id == 1444158624380358757 and message.guild:
-        await message.delete()
+        try:
+            await message.delete()
+        except discord.RateLimited:
+            logUtil.log(f"Bot was ratelimited while trying to delete a message at {datetime.datetime.now()}")
         if message.content.lower() == 'goobr':
             role = message.guild.get_role(1444078313177092171)
             logUtil.log(f'User {message.author} was granted the member role at {datetime.datetime.now()}')
@@ -66,9 +69,10 @@ async def cat(ctx):
         # Send request to the API
         async with aiohttp.ClientSession() as session:
             async with session.get('http://localhost:3000/api/cat') as response:
+                
                 if response.status != 200:
                     # If the request fails, update the message to indicate failure
-                    await msg.edit(content=f"Failed to fetch cat image. HTTP Status: {response.status}")
+                    await msg.edit(content=f"no luck this time :(\n maybe there will be a cat next time!")
                     return
                 
                 # Get the text (URL of the cat image)
@@ -81,7 +85,7 @@ async def cat(ctx):
                     await msg.edit(content="", embed=embed)
                 else:
                     # If there's no image URL in the response
-                    await msg.edit(content="No image found in the API response.")
+                    await msg.edit(content="no luck this time :(\n maybe there will be a cat next time!")
     
     except Exception as e:
         # Handle any other exceptions (e.g., connection issues)
@@ -123,4 +127,7 @@ async def test(ctx):
     await ctx.send("The bot is working!")
 
 def start():
-    bot.run(token)
+    try:
+        bot.run(token)
+    except discord.RateLimited:
+        logUtil.log(f"Bot was ratelimited at {datetime.datetime.now}")
