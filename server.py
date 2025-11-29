@@ -6,8 +6,25 @@ import asyncio
 import threading
 import json
 import sys
+from flask import Flask, request, abort, send_file, send_from_directory
 
-app = flask.Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder='static')
+
+blocked_ips = []
+
+
+@app.before_request
+def block_probes():
+    with open('blocked_ips.txt', 'r') as f:
+        for line in f:
+            blocked_ips.append(line)
+    if request.remote_addr in blocked_ips:
+        abort(403)
+    if not request.method.isascii():
+        blocked_ips.append(request.remote_addr)
+        with open('blocked_ips.txt', 'a') as f:
+            f.write(f"{request.remote_addr}\n")
+
 
 @app.route('/', methods=['GET'])
 def home():
