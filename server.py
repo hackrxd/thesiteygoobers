@@ -6,20 +6,30 @@ import asyncio
 import threading
 import json
 import sys
-from flask import Flask, request, abort, send_file, send_from_directory
+from flask import Flask, request, abort, send_file, send_from_directory, render_template
 
 app = Flask(__name__, static_folder='static')
 
 blocked_ips = []
 
+@app.errorhandler(404)
+def page_not_found(e):
+    # Renders the 404.html template and explicitly sends a 404 status code
+    return render_template('404.html'), 404
+
+@app.errorhandler(403)
+def forbiddon(e):
+    return render_template('403.html'), 403
 
 @app.before_request
 def block_probes():
     with open('blocked_ips.txt', 'r') as f:
         for line in f:
             blocked_ips.append(line)
-    if request.remote_addr in blocked_ips:
+    if request.remote_addr in blocked_ips and not request.path == "/main.css":
         abort(403)
+    else:
+        return send_file('main.css')
     if not request.method.isascii():
         blocked_ips.append(request.remote_addr)
         with open('blocked_ips.txt', 'a') as f:
@@ -46,7 +56,9 @@ def anonymous_event():
 def members():
     return flask.send_from_directory('members', 'index.html')
 
-
+@app.route('/fuck', methods=['GET'])
+def fuck():
+    return "why did you think there would be something on this page??"
 
 @app.route('/members/<folder_name>/', methods=['GET'])
 def servemeber(folder_name):
