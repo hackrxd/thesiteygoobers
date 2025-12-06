@@ -20,11 +20,23 @@ if not os.path.exists('bot/logs'):
 logUtil.log(f'\nBot started at {datetime.datetime.now()}')
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='.', intents=intents)
+
+class dbot(commands.Bot):
+    def __init__(self):
+        super().__init__(command_prefix='.', intents=intents)
+    
+    async def setup_hook(self) -> None:
+        await self.tree.sync()
+
+bot = dbot()
+# bot = commands.Bot(command_prefix='.', intents=intents)
+
+now = datetime.datetime.now()
+
 @bot.event
 async def on_ready():
     print(f'Bot logged in as {bot.user}')
-    logUtil.log(f'Bot logged in as {bot.user} at {datetime.datetime.now()}')
+    logUtil.log(f'Bot logged in as {bot.user} at {now}')
 
 #message listener
 @bot.event
@@ -120,7 +132,8 @@ async def ban_error(ctx, error):
                         "why should i even have to deal with people like you?"]
             message = random.choice(messages)
             await ctx.send(message)
-                        
+        logUtil.log(f"{ctx.author.display_name} attempted to ban a user, but failed due to missing permissions at {now}")
+
 
 @bot.command()
 async def test(ctx):

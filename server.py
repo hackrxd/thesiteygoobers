@@ -1,7 +1,7 @@
 import os
 import flask
 import random
-import bot.main as bot
+import bot.mainbeta as bot
 import asyncio
 import threading
 import json
@@ -10,7 +10,12 @@ from flask import Flask, request, abort, send_file, send_from_directory, render_
 
 app = Flask(__name__, static_folder='static')
 
-blocked_ips = []
+maintenence = False
+
+def block_ip(ip):
+    with open('blocked_ips.txt', 'a') as f:
+        f.write(f"{ip}\n")
+
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -21,20 +26,46 @@ def page_not_found(e):
 def forbiddon(e):
     return render_template('403.html'), 403
 
-@app.before_request
-def block_probes():
-    with open('blocked_ips.txt', 'r') as f:
-        for line in f:
-            blocked_ips.append(line)
-    if request.remote_addr in blocked_ips and not request.path == "/main.css":
-        abort(403)
-    else:
-        return send_file('main.css')
-    if not request.method.isascii():
-        blocked_ips.append(request.remote_addr)
-        with open('blocked_ips.txt', 'a') as f:
-            f.write(f"{request.remote_addr}\n")
+@app.errorhandler(400)
+def badreq(e):
+    return render_template('400.html'), 400
 
+@app.before_request
+def before():
+    if maintenence and not request.path == '/error' and not request.path == '/main.css':
+        return flask.redirect('/error')
+    elif request.path == '/error':
+        pass
+    elif request.path == '/main.css':
+        return flask.send_file('main.css')
+    else:
+        blocked_ips = []
+        with open('blocked_ips.txt', 'r') as f:
+            for line in f:
+                blocked_ips.append(line.strip())
+        if request.remote_addr in blocked_ips and not request.path == "/main.css":
+            abort(403)
+        elif request.remote_addr in blocked_ips and request.path == "/main.css":
+            return send_file('main.css')
+        if not request.method.isascii():
+            block_ip(request.remote_addr)
+        malicious_patterns = [
+            "wget%20",   
+            "%20sh",      
+            "|",
+            ";",
+            "nc%20",    
+            "rm%20-rf",   
+            "etc/passwd",
+            "mstshash=Administr"
+        ]
+
+        full_url = request.full_path
+
+        for i in malicious_patterns:
+            if i in full_url:
+                block_ip(request.remote_addr)
+                abort(400)
 
 @app.route('/', methods=['GET'])
 def home():
@@ -91,18 +122,27 @@ def member_folder(folder_name, filename):
         return flask.send_from_directory(os.path.join('members', folder_name), 'index.html')
     else:
         return flask.abort(404)  # Folder or index.html not found
+    
+@app.route('/error', methods=['GET'])
+def maintenenceredir():
+    if not maintenence:
+        return flask.redirect('/')
+    return send_file('error.html')
 
 @app.route('/api/cat')
 def cat():
-    cat_gifs = []
-    # Use os.path.join for robust path construction
-    cat_dir = os.path.join(app.root_path, 'static', 'cats') 
-    for i in os.listdir(cat_dir):
-        cat_gifs.append(i)
-    # The external URL needs to be accessible, adjust the hostname/port if needed
-    cat = random.choice(cat_gifs)
-    fullcat = f"http://hackrai.duckdns.org:3000/static/cats/{cat}"
-    return fullcat
+    if request.remote_addr == "127.0.0.1":
+        cat_gifs = []
+        # Use os.path.join for robust path construction
+        cat_dir = os.path.join(app.root_path, 'static', 'cats') 
+        for i in os.listdir(cat_dir):
+            cat_gifs.append(i)
+        # The external URL needs to be accessible, adjust the hostname/port if needed
+        cat = random.choice(cat_gifs)
+        fullcat = f"http://hackrai.duckdns.org:3000/static/cats/{cat}"
+        return fullcat
+    else:
+        abort(403)
 
 def updateQuote(message, author):
     # Create a dictionary for the quote and author
@@ -141,6 +181,20 @@ def get_quotes():
         return flask.jsonify([])  # Return empty list in case of an error
 
     return flask.jsonify(data)
+
+@app.route('/<filename>')
+def serve_file(filename):
+    blockedfiles = [
+        ".env"
+    ]
+    if filename in blockedfiles:
+        abort(403)
+    else:
+        return send_file(filename)
+    
+@app.route('/uploads/<filename>')
+def showupload(filename):
+    return send_from_directory('uploads', filename)
 
 
 try:
