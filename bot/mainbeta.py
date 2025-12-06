@@ -116,6 +116,41 @@ async def _suggest(interaction: discord.Interaction, command: str, description: 
         await interaction.response.send_message(content=f"Suggestion failed to save: {e}", ephemeral=True)
         logUtil.log(f"{interaction.user.name} tried suggesting a command, but an exception occured! {e}")
 
+@bot.tree.command(name="rps", description="Play a game of Rock Paper Scissors with the bot.")
+@app_commands.choices(options = [
+    app_commands.Choice(name="rock", value="rock"),
+    app_commands.Choice(name="paper", value="paper"),
+    app_commands.Choice(name="scissors", value="scissors")
+    ]
+)
+async def _rps(interaction: discord.Interaction, options:app_commands.Choice[str]):
+    choices = [
+        "rock",
+        "paper",
+        "scissors"
+    ]
+    choice = random.choice(choices)
+    win = False
+    message = None
+    if options.value == "paper" and choice == "rock":
+        win = True
+    elif options.value == "scissors" and choice == "paper":
+        win = True
+    elif options.value == "rock" and choice == "scissors":
+        win = True
+    elif options.value == choice:
+        win = None
+    if win:
+        message = f"You win!\n\nYour choice: **{options.value}**\nMy choice: **{choice}**"
+        logUtil.log(f"Lost Rock Paper Scissors against {interaction.user.name}. I chose {choice}, they chose {options.value}.")
+    elif win == None:
+        message = f"It's a tie!\n\nYour choice: **{options.value}**\nMy choice: **{choice}**"
+        logUtil.log(f"Tied in Rock Paper Scissors with {interaction.user.name}. I chose {choice}, they chose {options.value}.")
+    else:
+        message = f"I win!\n\nYour choice: **{options.value}**\nMy choice: **{choice}**"
+        logUtil.log(f"Won Rock Paper Scissors against {interaction.user.name}. I chose {choice}, they chose {options.value}.")
+    await interaction.response.send_message(content=message)
+
 @bot.command()
 @commands.is_owner()
 async def sync(ctx: commands.Context):
@@ -124,6 +159,7 @@ async def sync(ctx: commands.Context):
         bot.tree.copy_global_to(guild=ctx.guild) # Optional: copies global commands to the test guild
         synced = await bot.tree.sync(guild=ctx.guild)
         await ctx.send(f"Synced {len(synced)} commands to **{ctx.guild.name}** instantly.")
+        logUtil.log(f"Synced {len(synced)} commands to {ctx.guild.name}.")
     else:
         await ctx.send("This command must be used in a guild to sync instantly.")
 
