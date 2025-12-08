@@ -94,7 +94,7 @@ def before():
 @app.route('/', methods=['GET'])
 def home():
     if newUI:
-        return flask.send_file('newindex.html')
+        return flask.send_from_directory('uiupdate' ,'index.html')
     return flask.send_file('index.html')
 
 @app.route('/main.css', methods=['GET'])
