@@ -1,6 +1,6 @@
 // Set the date we're counting down to in UTC.
 // Midnight EDT (00:00:00) on 2025-10-01 is 04:00:00 UTC on the same date.
-var countDownDate = new Date("2025-10-01T04:00:00Z").getTime();
+var countDownDate = new Date("2026-10-01T04:00:00Z").getTime();
 
 // Update the count down every 1 second
 var x = setInterval(function() {

@@ -1,0 +1,30 @@
+body {
+    background-color: rgb(32, 28, 28);
+}
+
+h1 {
+    font-family: 'Google Sans Flex', sans-serif;
+    text-align: center;
+    color: white;
+    font-size: 50px;
+}
+
+p {
+    font-family: 'Google Sans Flex', sans-serif;
+    text-align: center;
+    color: white;
+    font-size: 20px;
+}
+
+p.disclaimer {
+    font-size: 30px;
+}
+
+p.quote {
+    font-style: italic;
+    font-size: 15px;
+}
+
+a {
+    color: rgb(140, 140, 223)
+}

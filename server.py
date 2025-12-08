@@ -6,11 +6,15 @@ import asyncio
 import threading
 import json
 import sys
-from flask import Flask, request, abort, send_file, send_from_directory, render_template
+from flask import Flask, request, abort, send_file, send_from_directory, render_template, jsonify
+from werkzeug.utils import secure_filename
+
 
 app = Flask(__name__, static_folder='static')
+app.config['UPLOAD_FOLDER'] = 'uploads'
 
-maintenence = False
+maintenence = True
+newUI = False
 
 def block_ip(ip):
     with open('blocked_ips.txt', 'a') as f:
@@ -30,10 +34,21 @@ def forbiddon(e):
 def badreq(e):
     return render_template('400.html'), 400
 
+@app.errorhandler(500)
+def error(e):
+    return render_template('500.html'), 500
+
 @app.before_request
 def before():
-    if maintenence and not request.path == '/error' and not request.path == '/main.css':
+    global newUI
+    newUI = False
+    if (
+        maintenence
+        and request.path not in ['/error', '/main.css']
+        and request.remote_addr not in ["127.0.0.1", "192.168.1.60", "162.221.131.48"]
+    ):
         return flask.redirect('/error')
+
     elif request.path == '/error':
         pass
     elif request.path == '/main.css':
@@ -57,7 +72,10 @@ def before():
             "nc%20",    
             "rm%20-rf",   
             "etc/passwd",
-            "mstshash=Administr"
+            "mstshash=Administr",
+            "\\x02\\x01\\x00",
+            "/_next/",
+            "\\x00"
         ]
 
         full_url = request.full_path
@@ -66,9 +84,17 @@ def before():
             if i in full_url:
                 block_ip(request.remote_addr)
                 abort(400)
+        newUIaddrs = []
+        with open('newui.txt', 'r') as f:
+            for line in f:
+                newUIaddrs.append(line.strip())
+        if request.remote_addr in newUIaddrs:
+            newUI = True
 
 @app.route('/', methods=['GET'])
 def home():
+    if newUI:
+        return flask.send_file('newindex.html')
     return flask.send_file('index.html')
 
 @app.route('/main.css', methods=['GET'])
@@ -77,7 +103,12 @@ def styling():
 
 @app.route('/events/', methods=['GET'])
 def events():
-    return flask.send_file('events.html')
+    return flask.send_from_directory('events', 'index.html')
+
+@app.route('/events/annual/<filename>', methods=['GET'])
+def serveAnnual(filename):
+    file = f"{filename}.html"
+    return flask.send_from_directory('events/annual', file)
 
 @app.route('/events/anonymous/', methods=['GET'])
 def anonymous_event():
@@ -90,6 +121,21 @@ def members():
 @app.route('/fuck', methods=['GET'])
 def fuck():
     return "why did you think there would be something on this page??"
+
+@app.route('/files')
+def indexFile():
+    return send_from_directory('files', 'index.html')
+
+FILES_DIR = "files"  # base directory on disk
+
+@app.route("/files/<path:filepath>")
+def serve_files(filepath):
+    full_path = os.path.join(FILES_DIR, filepath)
+
+    if not os.path.isfile(full_path):
+        abort(404)
+
+    return send_from_directory(FILES_DIR, filepath)
 
 @app.route('/members/<folder_name>/', methods=['GET'])
 def servemeber(folder_name):
@@ -122,6 +168,12 @@ def member_folder(folder_name, filename):
         return flask.send_from_directory(os.path.join('members', folder_name), 'index.html')
     else:
         return flask.abort(404)  # Folder or index.html not found
+    
+@app.route('/upload', methods=['GET'])
+def uploadPage():
+    return send_file('upload.html')
+
+
     
 @app.route('/error', methods=['GET'])
 def maintenenceredir():
@@ -184,6 +236,8 @@ def get_quotes():
 
 @app.route('/<filename>')
 def serve_file(filename):
+    if not os.path.exists(filename):
+        abort(404)
     blockedfiles = [
         ".env"
     ]
@@ -196,6 +250,51 @@ def serve_file(filename):
 def showupload(filename):
     return send_from_directory('uploads', filename)
 
+@app.route('/ui/new')
+def newUI():
+    with open('newui.txt', 'a') as f:
+        f.write(f"{request.remote_addr}\n")
+        return flask.redirect('/')
+
+@app.route('/ui/old')
+def oldUI():
+    with open('newui.txt', 'r') as f:
+        uiaddrs = []
+        for l in f:
+            uiaddrs.append(l.strip())
+        uiaddrs.remove(request.remote_addr)
+        with open('newui.txt', 'w') as f:
+                for i in uiaddrs:
+                    f.write(f"{i}\n")
+    return flask.redirect('/')
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "File not found in request."}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({"error": "No file selected by user."}), 400
+
+    safe_name = secure_filename(file.filename)
+    filename = f"{random.randint(1000000, 100000000)}-{random.randint(1000000, 100000000)}-{safe_name}".lower()
+    file_url = f'/uploads/{filename}'
+    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+    try:
+        file.save(path)
+    except Exception as e:
+        print(f"Failed to save file to {path}: {e}")
+        return jsonify({"error": "Upload failed."}), 500
+
+    return jsonify({
+        "originalName": file.filename,
+        "storedName": filename,
+        "fileUrl": file_url,
+        "uploader": "Anonymous"
+    }), 200
 
 try:
     # 1. Function to run the Flask app (synchronous)

@@ -44,7 +44,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
     if isinstance(message.channel, discord.DMChannel):
-        author = message.author.display_name
+        author = f"{message.author.display_name} ({message.author.name})"
         content = message.content
         server.updateQuote(content, author)
     if message.channel.id == 1444158624380358757 and message.guild:
@@ -162,6 +162,14 @@ async def sync(ctx: commands.Context):
         logUtil.log(f"Synced {len(synced)} commands to {ctx.guild.name}.")
     else:
         await ctx.send("This command must be used in a guild to sync instantly.")
+
+@bot.command()
+@commands.is_owner()
+async def clear(ctx):
+    if ctx.guild:
+        bot.tree.clear_commands(guild=ctx.guild)
+        await bot.tree.sync(guild=ctx.guild)
+        await ctx.send("Cleared and resynced guild commands.")
 
 
 def start():

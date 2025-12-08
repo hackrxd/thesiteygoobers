@@ -16,5 +16,6 @@ class SayCommand(commands.Cog):
         except Exception as e:
             await ctx.send('An error occurred while trying to send your message.')
             logUtil.log(f'Error sending message for {ctx.author} at {datetime.datetime.now()}: {e}')
+
 async def setup(bot):
     await bot.add_cog(SayCommand(bot))
