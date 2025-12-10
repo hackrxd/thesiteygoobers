@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="/new.css" rel="stylesheet">
+    <title>Upload - The Goofy Goobers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <form id="upload-form" method="POST" action="/api/upload" enctype="multipart/form-data">
+        <h1>Upload</h1>
+        <input type="file" class="file" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <div id="upload-status" aria-live="polite" class="upload-status"></div>
+    <div id="info" class="upload-information"></div>
+
+    <script>
+        (function(){
+            const form = document.getElementById('upload-form');
+            const status = document.getElementById('upload-status');
+            const info = document.getElementById('info');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                let uploading = true;
+                status.textContent = 'Uploading';
+                let timer = 0;
+
+                (async function showInfo() {
+                    while (uploading) {
+                        info.textContent = `Uploading (elapsed time: ${timer} seconds)`;
+                        await new Promise(r => setTimeout(r, 1000));
+                        timer += 1;
+                    }
+                })();
+
+                (async function showDots() {
+                    while (uploading) {
+                        status.textContent += '.';
+                        await new Promise(r => setTimeout(r, 500));
+                    }
+                })();
+
+                const data = new FormData(form);
+                try {
+                    const res = await fetch(form.action, { method: 'POST', body: data });
+                    uploading = false;
+
+                    if (!res.ok) {
+                        const errText = await res.text();
+                        status.textContent = 'Upload failed: ' + errText;
+                        status.style.color = 'red';
+                        return;
+                    }
+
+                    let body;
+                    try {
+                        body = await res.json();
+                    } catch {
+                        status.textContent = 'Upload succeeded (no JSON response)';
+                        status.style.color = 'green';
+                        return;
+                    }
+
+                    const name = body.originalName || body.storedName || 'file';
+                    const url = body.fileUrl || `/uploads/${body.storedName}`;
+                    status.innerHTML = `Upload successful: <strong>${escapeHtml(name)}</strong> — <a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(url)}</a>`;
+                    status.style.color = 'green';
+
+                } catch (err) {
+                    uploading = false;
+                    status.textContent = 'Upload failed: ' + err.message;
+                    status.style.color = 'red';
+                }
+            });
+        })();
+
+        function escapeHtml(unsafe) {
+            return String(unsafe)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>

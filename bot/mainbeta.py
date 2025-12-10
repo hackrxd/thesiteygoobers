@@ -151,6 +151,15 @@ async def _rps(interaction: discord.Interaction, options:app_commands.Choice[str
         logUtil.log(f"Won Rock Paper Scissors against {interaction.user.name}. I chose {choice}, they chose {options.value}.")
     await interaction.response.send_message(content=message)
 
+@bot.tree.command(name='togglemaintenence')
+async def _mtoggle(interaction: discord.Interaction):
+    if interaction.user.id == 759167810814476319:
+        async with aiohttp.ClientSession() as session:
+            async with session.get('http://localhost:3000/dev/togglemaintenence') as response:
+                await interaction.response.send_message("Web access toggled.")
+    else:
+        await interaction.response.send_message("Only <@759167810814476319> can run this command!")
+
 @bot.command()
 @commands.is_owner()
 async def sync(ctx: commands.Context):

@@ -13,8 +13,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__, static_folder='static')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
-maintenence = True
-newUI = False
+maintenence = False
 
 def block_ip(ip):
     with open('blocked_ips.txt', 'a') as f:
@@ -45,7 +44,7 @@ def before():
     if (
         maintenence
         and request.path not in ['/error', '/main.css']
-        and request.remote_addr not in ["127.0.0.1", "192.168.1.60", "162.221.131.48"]
+        and request.remote_addr not in ["127.0.0.1"]
     ):
         return flask.redirect('/error')
 
@@ -104,6 +103,10 @@ def styling():
 @app.route('/events/', methods=['GET'])
 def events():
     return flask.send_from_directory('events', 'index.html')
+
+@app.route('/events/annual')
+def annevent():
+    return send_from_directory('events/annual', 'index.html')
 
 @app.route('/events/annual/<filename>', methods=['GET'])
 def serveAnnual(filename):
@@ -171,6 +174,8 @@ def member_folder(folder_name, filename):
     
 @app.route('/upload', methods=['GET'])
 def uploadPage():
+    if newUI:
+        return send_from_directory('uiupdate', 'upload.html')
     return send_file('upload.html')
 
 
@@ -250,6 +255,14 @@ def serve_file(filename):
 def showupload(filename):
     return send_from_directory('uploads', filename)
 
+@app.route('/neurosama/neuro')
+def nwero():
+    return send_from_directory('neurosama', 'neuro.html')
+
+@app.route('/neurosama/eliv')
+def evil():
+    return send_from_directory('neurosama', 'evil.html')
+
 @app.route('/ui/new')
 def newUI():
     with open('newui.txt', 'a') as f:
@@ -268,6 +281,15 @@ def oldUI():
                     f.write(f"{i}\n")
     return flask.redirect('/')
 
+@app.route('/dev/togglemaintenence')
+def toggleRestrictedAccess():
+    global maintenence
+    if maintenence:
+        maintenence = False
+        return 0
+    elif not maintenence:
+        maintenence = True
+        return 1
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -288,7 +310,7 @@ def upload_file():
     except Exception as e:
         print(f"Failed to save file to {path}: {e}")
         return jsonify({"error": "Upload failed."}), 500
-
+    
     return jsonify({
         "originalName": file.filename,
         "storedName": filename,
