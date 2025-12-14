@@ -1,0 +1,27 @@
+name: Deploy to VM
+
+on:
+  push:
+    branches:
+      - main  # or master, whichever branch you use
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Copy SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      - name: Add server to known_hosts
+        run: |
+          ssh-keyscan -H 192.168.1.50 >> ~/.ssh/known_hosts
+
+      - name: Pull and restart app
+        run: |
+          ssh -i ~/.ssh/id_ed25519 hackr@192.168.1.50 "cd /var/www/myapp && git pull && sudo systemctl restart myapp"
