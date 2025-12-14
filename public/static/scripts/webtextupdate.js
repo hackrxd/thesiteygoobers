@@ -5,15 +5,15 @@ function sleep(ms) {
 }
 
 // Convert URLs in plain text into clickable <a> links
-function linkify(text) {
-    if (!text) return '';
+// function linkify(text) {
+//     if (!text) return '';
 
-    const urlRegex = /((https?:\/\/)[^\s<]+)/gi;
+//     const urlRegex = /((https?:\/\/)[^\s<]+)/gi;
 
-    return text.replace(urlRegex, (url) => {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-    });
-}
+//     return text.replace(urlRegex, (url) => {
+//         return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+//     });
+// }
 
 function updateQuoteNow() {
     const quoteElem = document.getElementById('willow-quote');
@@ -25,7 +25,7 @@ function updateQuoteNow() {
             if (Array.isArray(data) && data.length > 0) {
                 const latest = data[data.length - 1];
 
-                const message = linkify(latest.message || JSON.stringify(latest));
+                // const message = linkify(latest.message || JSON.stringify(latest));
                 const author = latest.author || 'Unknown';
 
                 quoteElem.innerHTML = `"${message}" - ${author}`;
