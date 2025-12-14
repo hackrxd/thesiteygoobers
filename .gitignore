@@ -10,3 +10,4 @@ bot/config/*
 bot/logs
 public/cats
 .venv/
+webtextdata.json

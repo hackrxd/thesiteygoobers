@@ -40,28 +40,68 @@ async def on_ready():
 #message listener
 @bot.event
 async def on_message(message):
+    # 1. Ignore messages sent by the bot itself
     if message.author == bot.user:
         return
+
+    # 2. Handle Direct Messages (DM)
     if isinstance(message.channel, discord.DMChannel):
         author = message.author.display_name
         content = message.content
-        async with aiohttp.ClientSession() as session:
-            data = {
-                "author": author,
-                "content": content
-            }
-
-            async with session.post(url="http://192.178.1.178", json=data):
-                message.reply("Website quote attempted update")
-    if message.channel.id == 1444158624380358757 and message.guild:
+        
         try:
-            await message.delete()
-        except discord.RateLimited:
-            logUtil.log(f"Bot was ratelimited while trying to delete a message at {datetime.datetime.now()}")
+            async with aiohttp.ClientSession() as session:
+                data = {
+                    "author": author,
+                    "content": content
+                }
+
+                # Correct usage of session.post with 'async with'
+                async with session.post(url="http://192.178.1.178", json=data) as resp:
+                    # Optional: Check the status and consume the response body
+                    if resp.status == 200:
+                        response_text = await resp.text() # Consume the response body
+                        await message.reply(f"Website quote attempted update (Status: {resp.status})")
+                    else:
+                        await message.reply(f"Website quote update failed (Status: {resp.status})")
+
+        except aiohttp.ClientConnectorError as e:
+            logUtil.log(f"aiohttp connection error to 192.178.1.178: {e}")
+            await message.reply("Could not connect to the external website for quote update.")
+        except Exception as e:
+            logUtil.log(f"Unexpected error during DM handling: {e}")
+            await message.reply("An unexpected error occurred during quote update.")
+
+    # 3. Handle specific guild channel logic (assuming bot is in a guild)
+    # The channel ID 1444158624380358757 is very long, make sure it's correct!
+    if message.channel.id == 1444158624380358757 and message.guild:
+        
+        # Check for 'goobr' command before deleting messages in this channel
         if message.content.lower() == 'goobr':
-            role = message.guild.get_role(1444078313177092171)
-            logUtil.log(f'User {message.author} was granted the member role at {datetime.datetime.now()}')
-            await message.author.add_roles(role)
+            # Ensure message.guild is not None (checked above)
+            role = message.guild.get_role(1444078313177092171) # The 'member' role ID
+            
+            if role:
+                logUtil.log(f'User {message.author} was granted the member role at {datetime.datetime.now()}')
+                await message.author.add_roles(role)
+            else:
+                logUtil.log(f"Could not find role with ID 1444078313177092171 in guild {message.guild.id}")
+                
+        # Attempt to delete the message
+        try:
+            # Delete message *after* processing its content (like 'goobr')
+            await message.delete() 
+        except discord.NotFound:
+             # Message might have been deleted by someone else already
+            pass
+        except discord.Forbidden:
+            logUtil.log(f"Bot lacks permissions to delete message in channel {message.channel.id}")
+        except discord.HTTPException:
+             # Covers RateLimited and other HTTP errors
+            logUtil.log(f"Bot encountered an HTTP error while trying to delete a message at {datetime.datetime.now()}")
+
+
+    # 4. Process commands registered via @bot.command()
     await bot.process_commands(message)
 
 @bot.tree.command(name="test", description="sigh")
