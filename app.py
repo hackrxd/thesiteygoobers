@@ -1,47 +1,37 @@
 import os
 import random
 import json
-from flask import Flask, request, abort, send_file, send_from_directory, render_template, jsonify, redirect
-from werkzeug.utils import secure_filename
+from flask import Flask, request, abort, send_from_directory, jsonify, redirect
+
+# --- Base directories ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
+UPLOAD_DIR = os.path.join(BASE_DIR, 'uploads')
+BLOCKED_IPS_FILE = os.path.join(BASE_DIR, 'blocked_ips.txt')
+NEW_UI_FILE = os.path.join(BASE_DIR, 'newui.txt')
+WEBTEXT_FILE = os.path.join(BASE_DIR, 'webtextdata.json')
 
 # --- Flask app setup ---
-app = Flask(__name__, static_folder='static')
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app = Flask(__name__, static_folder=PUBLIC_DIR)
+app.config['UPLOAD_FOLDER'] = UPLOAD_DIR
 maintenence = False
 
 # --- Utility functions ---
 def block_ip(ip):
-    with open('blocked_ips.txt', 'a') as f:
+    with open(BLOCKED_IPS_FILE, 'a') as f:
         f.write(f"{ip}\n")
 
 def load_blocked_ips():
-    if not os.path.exists('blocked_ips.txt'):
+    if not os.path.exists(BLOCKED_IPS_FILE):
         return []
-    with open('blocked_ips.txt', 'r') as f:
+    with open(BLOCKED_IPS_FILE, 'r') as f:
         return [line.strip() for line in f]
 
 def load_new_ui_addrs():
-    if not os.path.exists('newui.txt'):
+    if not os.path.exists(NEW_UI_FILE):
         return []
-    with open('newui.txt', 'r') as f:
+    with open(NEW_UI_FILE, 'r') as f:
         return [line.strip() for line in f]
-
-# --- Error handlers ---
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'), 404
-
-@app.errorhandler(403)
-def forbidden(e):
-    return render_template('403.html'), 403
-
-@app.errorhandler(400)
-def bad_request(e):
-    return render_template('400.html'), 400
-
-@app.errorhandler(500)
-def server_error(e):
-    return render_template('500.html'), 500
 
 # --- Request pre-processing ---
 @app.before_request
@@ -77,84 +67,44 @@ def before_request():
         newUI = True
 
 # --- Routes ---
+
+# Root route
 @app.route('/', methods=['GET'])
 def home():
     if newUI:
-        return send_from_directory('uiupdate', 'index.html')
-    return send_file('index.html')
+        ui_file = os.path.join(BASE_DIR, 'uiupdate', 'index.html')
+        if os.path.exists(ui_file):
+            return send_from_directory(os.path.join(BASE_DIR, 'uiupdate'), 'index.html')
+    index_file = os.path.join(PUBLIC_DIR, 'index.html')
+    if os.path.exists(index_file):
+        return send_from_directory(PUBLIC_DIR, 'index.html')
+    abort(404)
 
-@app.route('/main.css', methods=['GET'])
-def styling():
-    return send_file('main.css', mimetype='text/css')
+# Serve static files (CSS, JS, members, etc.)
+@app.route('/<path:filename>')
+def static_files(filename):
+    file_path = os.path.join(PUBLIC_DIR, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(PUBLIC_DIR, filename)
+    # Also serve uploads
+    upload_path = os.path.join(UPLOAD_DIR, filename)
+    if os.path.exists(upload_path):
+        return send_from_directory(UPLOAD_DIR, filename)
+    abort(404)
 
-@app.route('/events/', methods=['GET'])
-def events():
-    return send_from_directory('events', 'index.html')
-
-@app.route('/events/annual/')
-def annevent():
-    return send_from_directory('events/annual', 'index.html')
-
-@app.route('/events/annual/<filename>', methods=['GET'])
-def serve_annual(filename):
-    file = f"{filename}.html"
-    return send_from_directory('events/annual', file)
-
-@app.route('/events/anonymous/', methods=['GET'])
-def anonymous_event():
-    return send_file('anonymousanomaly.html')
-
-@app.route('/members/', methods=['GET'])
-def members():
-    return send_from_directory('members', 'index.html')
-
-@app.route('/members/<folder_name>/', methods=['GET'])
-def servemeber(folder_name):
-    # Define the folder path where 'index.html' should exist
-    folder_path = os.path.join('members', folder_name, 'index.html')
-
-    # Check if the index.html file exists
-    if os.path.exists(folder_path):
-        return send_from_directory(os.path.join('members', folder_name), 'index.html')
-    else:
-        return abort(404)  # If the file doesn't exist, return 404
-
-
-
-@app.route('/members/<folder_name>/<filename>', methods=['GET']) # type: ignore
-def member_folder(folder_name, filename):
-    # Handle if the request is for a .css file
-    if filename.endswith('.css'):
-        css_folder_path = os.path.join('members', folder_name, 'css')
-        # Ensure the CSS file exists in the right subdirectory
-        if os.path.exists(os.path.join(css_folder_path, filename)):
-            return send_from_directory(css_folder_path, filename)
-        else:
-            return abort(404)  # If CSS file doesn't exist
-    
-
-@app.route('/files/<path:filepath>')
-def serve_files(filepath):
-    full_path = os.path.join("files", filepath)
-    if not os.path.isfile(full_path):
-        abort(404)
-    return send_from_directory('files', filepath)
-
-@app.route('/uploads/<filename>')
-def show_upload(filename):
-    return send_from_directory('uploads', filename)
-
+# API endpoint for JSON data
 @app.route('/api/webtextdata', methods=['GET'])
 def get_quotes():
-    if not os.path.exists('webtextdata.json'):
+    if not os.path.exists(WEBTEXT_FILE):
         return jsonify([])
     try:
-        with open('webtextdata.json', 'r', encoding='utf-8') as f:
+        with open(WEBTEXT_FILE, 'r', encoding='utf-8') as f:
             data = json.load(f)
     except (json.JSONDecodeError, UnicodeDecodeError):
         return jsonify([])
     return jsonify(data)
 
+# File uploads
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -163,8 +113,8 @@ def upload_file():
     if file.filename == '':
         return jsonify({"error": "No file selected"}), 400
     safe_name = secure_filename(file.filename)
-    filename = f"{random.randint(1000000, 100000000)}-{random.randint(1000000, 100000000)}-{safe_name}".lower()
-    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    filename = f"{random.randint(1000000, 100000000)}-{random.randint(1000000,100000000)}-{safe_name}".lower()
+    path = os.path.join(UPLOAD_DIR, filename)
     file.save(path)
     return jsonify({
         "originalName": file.filename,
@@ -173,6 +123,21 @@ def upload_file():
         "uploader": "Anonymous"
     }), 200
 
-# --- Systemd/Gunicorn pattern: do NOT run app.run() ---
-# The app will be run by Gunicorn:
-#   gunicorn -w 3 -b 127.0.0.1:8000 your_module_name:app
+# Error routes (optional custom pages)
+@app.errorhandler(404)
+def page_not_found(e):
+    return send_from_directory(PUBLIC_DIR, '404.html'), 404
+
+@app.errorhandler(403)
+def forbidden(e):
+    return send_from_directory(PUBLIC_DIR, '403.html'), 403
+
+@app.errorhandler(400)
+def bad_request(e):
+    return send_from_directory(PUBLIC_DIR, '400.html'), 400
+
+@app.errorhandler(500)
+def server_error(e):
+    return send_from_directory(PUBLIC_DIR, '500.html'), 500
+
+# --- Gunicorn will run this app; do NOT use app.run() ---
