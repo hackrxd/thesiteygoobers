@@ -20,8 +20,8 @@ jobs:
 
       - name: Add server to known_hosts
         run: |
-          ssh-keyscan -H https://usgs-celebration-acquisition-planets.trycloudflare.com >> ~/.ssh/known_hosts
+          ssh-keyscan -H usgs-celebration-acquisition-planets.trycloudflare.com >> ~/.ssh/known_hosts
 
       - name: Pull and restart app
         run: |
-          ssh -i ~/.ssh/id_ed25519 hackr@https://usgs-celebration-acquisition-planets.trycloudflare.com "cd /var/www/myapp && git pull && sudo systemctl restart myapp"
+          ssh -i ~/.ssh/id_ed25519 hackr@usgs-celebration-acquisition-planets.trycloudflare.com "cd /var/www/myapp && git pull && sudo systemctl restart myapp"
