@@ -1,7 +1,7 @@
 import os
 import random
 import json
-from flask import Flask, request, abort, send_file, send_from_directory, render_template, jsonify
+from flask import Flask, request, abort, send_file, send_from_directory, render_template, jsonify, redirect
 from werkzeug.utils import secure_filename
 
 # --- Flask app setup ---
@@ -56,7 +56,7 @@ def before_request():
     # Maintenance check
     if (maintenence and request.path not in ['/error', '/main.css']
         and request.remote_addr not in ["127.0.0.1"]):
-        return flask.redirect('/error')
+        return redirect('/error')
 
     # Blocked IP check
     if request.remote_addr in blocked_ips and request.path != "/main.css":
@@ -107,6 +107,31 @@ def anonymous_event():
 @app.route('/members/', methods=['GET'])
 def members():
     return send_from_directory('members', 'index.html')
+
+@app.route('/members/<folder_name>/', methods=['GET'])
+def servemeber(folder_name):
+    # Define the folder path where 'index.html' should exist
+    folder_path = os.path.join('members', folder_name, 'index.html')
+
+    # Check if the index.html file exists
+    if os.path.exists(folder_path):
+        return send_from_directory(os.path.join('members', folder_name), 'index.html')
+    else:
+        return abort(404)  # If the file doesn't exist, return 404
+
+
+
+@app.route('/members/<folder_name>/<filename>', methods=['GET']) # type: ignore
+def member_folder(folder_name, filename):
+    # Handle if the request is for a .css file
+    if filename.endswith('.css'):
+        css_folder_path = os.path.join('members', folder_name, 'css')
+        # Ensure the CSS file exists in the right subdirectory
+        if os.path.exists(os.path.join(css_folder_path, filename)):
+            return send_from_directory(css_folder_path, filename)
+        else:
+            return abort(404)  # If CSS file doesn't exist
+    
 
 @app.route('/files/<path:filepath>')
 def serve_files(filepath):
