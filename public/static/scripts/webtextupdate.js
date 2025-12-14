@@ -15,6 +15,7 @@ function sleep(ms) {
 //     });
 // }
 
+
 function updateQuoteNow() {
     const quoteElem = document.getElementById('willow-quote');
     if (!quoteElem) return;
@@ -25,11 +26,14 @@ function updateQuoteNow() {
             if (Array.isArray(data) && data.length > 0) {
                 const latest = data[data.length - 1];
 
-                // const message = linkify(latest.message || JSON.stringify(latest));
+                // FIX: Define the message variable here
+                const message = latest.message || JSON.stringify(latest); 
+                
                 const author = latest.author || 'Unknown';
 
                 quoteElem.innerHTML = `"${message}" - ${author}`;
             } else {
+                // ... (rest of the code)
                 quoteElem.textContent = 'No quote found.';
             }
         })
