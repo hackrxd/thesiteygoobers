@@ -11,7 +11,7 @@ import requests
 import aiohttp
 import ollama
 import random
-import server
+import app
 
 if not os.path.exists('bot/logs'):
     os.makedirs('bot/logs')
@@ -46,7 +46,7 @@ async def on_message(message):
     if isinstance(message.channel, discord.DMChannel):
         author = message.author.display_name
         content = message.content
-        server.updateQuote(content, author)
+        app.updateQuote(content, author)
     if message.channel.id == 1444158624380358757 and message.guild:
         try:
             await message.delete()

@@ -11,7 +11,7 @@ import requests
 import aiohttp
 import ollama
 import random
-import server
+import app
 from discord import app_commands
 
 if not os.path.exists('bot/logs'):
@@ -46,7 +46,7 @@ async def on_message(message):
     if isinstance(message.channel, discord.DMChannel):
         author = f"{message.author.display_name} ({message.author.name})"
         content = message.content
-        server.updateQuote(content, author)
+        app.updateQuote(content, author)
     if message.channel.id == 1444158624380358757 and message.guild:
         try:
             await message.delete()
@@ -54,6 +54,15 @@ async def on_message(message):
             logUtil.log(f"Bot was ratelimited while trying to delete a message.")
         if message.content.lower() == 'goobr':
             role = message.guild.get_role(1444078313177092171)
+            logUtil.log(f'User {message.author} was granted the member role.')
+            await message.author.add_roles(role)
+    elif message.channel.id == 1437552610415743068 and message.guild:
+        try:
+            await message.delete()
+        except discord.RateLimited:
+            logUtil.log(f"Bot was ratelimited while trying to delete a message.")
+        if message.content.lower() == 'goobr':
+            role = message.guild.get_role(1437581995961225338)
             logUtil.log(f'User {message.author} was granted the member role.')
             await message.author.add_roles(role)
     await bot.process_commands(message)
@@ -160,6 +169,22 @@ async def _mtoggle(interaction: discord.Interaction):
     else:
         await interaction.response.send_message("Only <@759167810814476319> can run this command!")
 
+@bot.tree.command(name='kick', description="Kicks a specified user from the guild")
+@app_commands.checks.has_permissions(kick_members=True)
+async def _kick(interaction:discord.Interaction, member: discord.Member, reason: discord.Optional[str]):
+    if not reason:
+        reason = "No reason provided."
+    await interaction.guild.kick(member, reason=f"User {member.name} was kicked by {interaction.user} for reason:\n{reason}")
+    await interaction.response.send_message(f"{member} has been kicked for reason\n\n```{reason}```")
+        
+@_kick.error
+async def kick_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("You do not have sufficient permissions to kick members.")
+    elif isinstance(error, app_commands.BotMissingPermissions):
+        await interaction.response.send_message("My role doesn't have the required permissions to kick members.")
+    else:
+        pass
 @bot.command()
 @commands.is_owner()
 async def sync(ctx: commands.Context):
