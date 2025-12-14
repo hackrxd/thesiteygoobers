@@ -101,6 +101,36 @@ def static_files(filename):
         return send_from_directory(UPLOAD_DIR, filename)
     abort(404)
 
+@app.route('/api/updatewebtext', methods=['POST'])
+def updateQuote():
+    # Create a dictionary for the quote and author
+    data = request.get_json()
+
+    message = data.get('message')
+    author = data.get('author')
+    
+    new_quote = {
+        'message': message,
+        'author': author
+    }
+    
+    # Open the file and append the new quote
+    try:
+        # Try to read existing data from the JSON file
+        with open('webtextdata.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        # If file doesn't exist or is empty, start with an empty list
+        data = []
+    
+    # Append the new quote to the existing list of quotes
+    data.append(new_quote)
+    
+    # Write the updated list back to the file
+    with open('webtextdata.json', 'w') as f:
+        json.dump(data, f, indent=4)
+
+
 # API endpoint for JSON data
 @app.route('/api/webtextdata', methods=['GET'])
 def get_quotes():

@@ -11,10 +11,9 @@ import requests
 import aiohttp
 import ollama
 import random
-import app
 
-if not os.path.exists('bot/logs'):
-    os.makedirs('bot/logs')
+if not os.path.exists('logs'):
+    os.makedirs('logs')
 
 
 logUtil.log(f'\nBot started at {datetime.datetime.now()}')
@@ -46,7 +45,14 @@ async def on_message(message):
     if isinstance(message.channel, discord.DMChannel):
         author = message.author.display_name
         content = message.content
-        app.updateQuote(content, author)
+        async with aiohttp.ClientSession() as session:
+            data = {
+                "author": author,
+                "content": content
+            }
+
+            async with session.post(url="http://192.178.1.178", json=data):
+                message.reply("Website quote attempted update")
     if message.channel.id == 1444158624380358757 and message.guild:
         try:
             await message.delete()

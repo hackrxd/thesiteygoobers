@@ -3,7 +3,7 @@ with open('bot/config/credentials/token', 'r') as f:
     token = f.read()
 import discord
 from discord.ext import commands
-import bot.functions.writeToLog as logUtil
+import functions.writeToLog as logUtil
 import datetime
 import os
 import asyncio
@@ -11,11 +11,10 @@ import requests
 import aiohttp
 import ollama
 import random
-import app
 from discord import app_commands
 
-if not os.path.exists('bot/logs'):
-    os.makedirs('bot/logs')
+if not os.path.exists('logs'):
+    os.makedirs('logs')
 
 
 logUtil.log(f'\nBot started at {datetime.datetime.now()}')
@@ -44,26 +43,24 @@ async def on_message(message):
     if message.author == bot.user:
         return
     if isinstance(message.channel, discord.DMChannel):
-        author = f"{message.author.display_name} ({message.author.name})"
+        author = message.author.display_name
         content = message.content
-        app.updateQuote(content, author)
+        async with aiohttp.ClientSession() as session:
+            data = {
+                "author": author,
+                "content": content
+            }
+
+            async with session.post(url="http://192.178.1.178", json=data):
+                message.reply("Website quote attempted update")
     if message.channel.id == 1444158624380358757 and message.guild:
         try:
             await message.delete()
         except discord.RateLimited:
-            logUtil.log(f"Bot was ratelimited while trying to delete a message.")
+            logUtil.log(f"Bot was ratelimited while trying to delete a message at {datetime.datetime.now()}")
         if message.content.lower() == 'goobr':
             role = message.guild.get_role(1444078313177092171)
-            logUtil.log(f'User {message.author} was granted the member role.')
-            await message.author.add_roles(role)
-    elif message.channel.id == 1437552610415743068 and message.guild:
-        try:
-            await message.delete()
-        except discord.RateLimited:
-            logUtil.log(f"Bot was ratelimited while trying to delete a message.")
-        if message.content.lower() == 'goobr':
-            role = message.guild.get_role(1437581995961225338)
-            logUtil.log(f'User {message.author} was granted the member role.')
+            logUtil.log(f'User {message.author} was granted the member role at {datetime.datetime.now()}')
             await message.author.add_roles(role)
     await bot.process_commands(message)
 
@@ -211,3 +208,5 @@ def start():
         bot.run(token)
     except discord.RateLimited:
         logUtil.log(f"Bot was ratelimited at {datetime.datetime.now}")
+
+start()
