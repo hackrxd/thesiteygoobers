@@ -1,6 +1,8 @@
 import os
 import random
 import json
+from flask import request
+import subprocess
 from flask import Flask, request, abort, send_from_directory, jsonify, redirect
 
 # --- Base directories ---
@@ -15,6 +17,13 @@ WEBTEXT_FILE = os.path.join(BASE_DIR, 'webtextdata.json')
 app = Flask(__name__, static_folder=PUBLIC_DIR)
 app.config['UPLOAD_FOLDER'] = UPLOAD_DIR
 maintenence = False
+
+@app.route('/deploy', methods=['POST'])
+def webhook_deploy():
+    # Optional: validate GitHub secret
+    subprocess.call(['/home/hackr/deploy.sh'])
+    return 'Deploy triggered', 200
+
 
 # --- Utility functions ---
 def block_ip(ip):
