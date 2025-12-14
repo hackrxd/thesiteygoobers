@@ -26,24 +26,43 @@ function updateQuoteNow() {
             if (Array.isArray(data) && data.length > 0) {
                 const latest = data[data.length - 1];
 
-                // FIX: Define the message variable here
-                const message = latest.message || JSON.stringify(latest); 
-                
+                // FIX: Define the message variable
+                const message = latest.message || JSON.stringify(latest);
                 const author = latest.author || 'Unknown';
 
+                // --- START Change Detection Logic ---
+                if (message === lastMessageContent) {
+                    // console.log("Quote hasn't changed, skipping DOM update.");
+                    return; // Stop execution if the message is the same
+                }
+                
+                // Update the stored message content
+                lastMessageContent = message; 
+                // --- END Change Detection Logic ---
+
+
+                // Only update the DOM if the message changed
                 quoteElem.innerHTML = `"${message}" - ${author}`;
+                
             } else {
-                // ... (rest of the code)
-                quoteElem.textContent = 'No quote found.';
+                // If there's no quote, check if we need to update the display
+                if (lastMessageContent !== 'No quote found.') {
+                    quoteElem.textContent = 'No quote found.';
+                    lastMessageContent = 'No quote found.';
+                }
             }
         })
         .catch(() => {
             if (quoteElem) {
-                quoteElem.textContent = 'Error loading quote.';
+                 // Error handling message
+                const errorMessage = 'Error loading quote.';
+                if (lastMessageContent !== errorMessage) {
+                    quoteElem.textContent = errorMessage;
+                    lastMessageContent = errorMessage;
+                }
             }
         });
 }
-
 // Make sure DOM is ready before the first update
 document.addEventListener('DOMContentLoaded', () => {
     updateQuoteNow();
