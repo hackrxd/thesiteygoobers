@@ -1,20 +1,11 @@
 // webtextupdate.js (browser-side)
 
+// Store the last received quote message to detect changes
+let lastMessageContent = null; 
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-// Convert URLs in plain text into clickable <a> links
-// function linkify(text) {
-//     if (!text) return '';
-
-//     const urlRegex = /((https?:\/\/)[^\s<]+)/gi;
-
-//     return text.replace(urlRegex, (url) => {
-//         return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-//     });
-// }
-
 
 function updateQuoteNow() {
     const quoteElem = document.getElementById('willow-quote');
@@ -63,8 +54,11 @@ function updateQuoteNow() {
             }
         });
 }
+
 // Make sure DOM is ready before the first update
 document.addEventListener('DOMContentLoaded', () => {
+    // You might want to increase the interval since updates are now conditional
+    // 200ms is still very fast. I recommend 500ms or 1000ms (1 second)
     updateQuoteNow();
-    setInterval(updateQuoteNow, 200);
+    setInterval(updateQuoteNow, 1000); // Changed to 1 second interval
 });
