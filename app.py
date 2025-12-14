@@ -18,7 +18,7 @@ app = Flask(__name__, static_folder=PUBLIC_DIR)
 app.config['UPLOAD_FOLDER'] = UPLOAD_DIR
 maintenence = False
 
-@app.route('/deploy', methods=['POST'])
+@app.route('/deploy')
 def webhook_deploy():
     # Optional: validate GitHub secret
     subprocess.call(['/home/hackr/deploy.sh'])
