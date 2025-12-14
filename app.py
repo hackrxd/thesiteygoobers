@@ -129,7 +129,7 @@ def updateQuote():
     # Write the updated list back to the file
     with open('webtextdata.json', 'w') as f:
         json.dump(data, f, indent=4)
-
+    return jsonify({"status": "success", "message": "Quote saved successfully."}), 201
 
 # API endpoint for JSON data
 @app.route('/api/webtextdata', methods=['GET'])

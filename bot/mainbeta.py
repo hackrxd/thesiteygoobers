@@ -53,11 +53,11 @@ async def on_message(message):
             async with aiohttp.ClientSession() as session:
                 data = {
                     "author": author,
-                    "content": content
+                    "message": content
                 }
 
                 # Correct usage of session.post with 'async with'
-                async with session.post(url="http://192.178.1.178", json=data) as resp:
+                async with session.post(url="http://192.168.1.178/api/updatewebtext", json=data) as resp:
                     # Optional: Check the status and consume the response body
                     if resp.status == 200:
                         response_text = await resp.text() # Consume the response body
