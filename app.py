@@ -186,4 +186,3 @@ def server_error(e):
     return send_from_directory(PUBLIC_DIR, '500.html'), 500
 
 # --- Gunicorn will run this app; do NOT use app.run() ---
-app.run()

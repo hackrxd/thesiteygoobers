@@ -120,7 +120,7 @@ async def _cat(interaction: discord.Interaction):
         await asyncio.sleep(random.randint(1, 3))
 
         async with aiohttp.ClientSession() as session:
-            async with session.get('http://localhost:3000/api/cat') as response:
+            async with session.get('http://192.168.1.178/api/cat') as response:
                 if response.status != 200:
                     await msg.edit(content="no luck this time :(\n maybe there will be a cat next time!")
                     return
