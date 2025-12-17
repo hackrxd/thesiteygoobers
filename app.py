@@ -163,6 +163,11 @@ def upload_file():
         "uploader": "Anonymous"
     }), 200
 
+@app.route('/api/cat', methods=["GET"])
+def cat():
+    images = os.listdir(os.path.join(BASE_DIR, "public/static/img/cats"))
+    img = random.choice(images)
+    return f"http://hackrai.duckdns.org/static/img/cats/{img}"
 # Error routes (optional custom pages)
 @app.errorhandler(404)
 def page_not_found(e):
@@ -181,3 +186,4 @@ def server_error(e):
     return send_from_directory(PUBLIC_DIR, '500.html'), 500
 
 # --- Gunicorn will run this app; do NOT use app.run() ---
+app.run()

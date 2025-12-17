@@ -1,5 +1,5 @@
 token = None
-with open('bot/config/credentials/token', 'r') as f:
+with open('config/credentials/token', 'r') as f:
     token = f.read()
 import discord
 from discord.ext import commands
@@ -154,7 +154,7 @@ async def _rate(interaction: discord.Interaction, subject: str, unit: str):
 )
 async def _suggest(interaction: discord.Interaction, command: str, description: str):
     try:
-        with open(f"bot/cmdsuggestions/{command}.md", 'w') as f:
+        with open(f"cmdsuggestions/{command}.md", 'w') as f:
             f.write(f"# {command}\n\n{description}\n\n##### Requested by {interaction.user.name}")
             await interaction.response.send_message(content="Your suggestion has been saved.", ephemeral=True)
             logUtil.log(f"{interaction.user.name} suggested a command: {command}")
