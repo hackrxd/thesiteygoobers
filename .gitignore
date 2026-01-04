@@ -12,3 +12,5 @@ public/cats
 .venv/
 webtextdata.json
 webtextdata.json
+*.log
+*.json
