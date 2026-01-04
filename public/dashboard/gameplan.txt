@@ -1,0 +1,5 @@
+1. frontend requests authentication from server w/ Discord
+2. server checks if user matches a uid (specifically mine)
+3. if the user is not me, they will get a version of the page without the controls
+4. if the user is me, they get the full page
+5. profit.
