@@ -117,7 +117,7 @@ function fetchUsage() {
     if (paused) {
         return;
     }
-    fetch('192.168.1.60:3000/system/usage')
+    fetch('http://192.168.1.60:3000/system/usage')
         .then(response => response.json())
         .then(data => {
             // Update CPU

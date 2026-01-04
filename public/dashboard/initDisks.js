@@ -3,7 +3,7 @@ function initDisks() {
     // ensure shared chart map exists
     window.diskCharts = window.diskCharts || {};
 
-    fetch('192.168.1.60:3000/system/usage/disks', { cache: 'no-store' })
+    fetch('http://192.168.1.60:3000/system/usage/disks', { cache: 'no-store' })
         .then(response => response.json())
         .then(data => {
             const disksContainer = document.getElementById('disks-container');
