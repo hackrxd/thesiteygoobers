@@ -1,5 +1,5 @@
 function getName() {
-    return fetch('/system/name')
+    return fetch('/api/system/name')
         .then(response => response.json())
         .then(data => data.name);
 }
@@ -10,7 +10,7 @@ async function updateName() {
 }
 
 function getLogLines() {
-    return fetch('/config/lines', { method: 'GET' })
+    return fetch('/api/config/lines', { method: 'GET' })
         .then(response => response.json())
         .then(data => data.logLines);
 }

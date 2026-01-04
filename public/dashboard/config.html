@@ -42,7 +42,7 @@
                 const logLines = parseInt(document.getElementById('logLines').value);
                 const result = document.getElementById('config-result');
 
-                fetch('/config/edit', {
+                fetch('/api/config/edit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

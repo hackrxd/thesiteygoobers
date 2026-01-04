@@ -26,7 +26,7 @@ function reconnect() {
 }
 
 function checkConnection() {
-    fetch('/system/usage', { cache: 'no-store' })
+    fetch('/api/system/usage', { cache: 'no-store' })
         .then(response => {
             if (!response.ok) {
                 reconnect();

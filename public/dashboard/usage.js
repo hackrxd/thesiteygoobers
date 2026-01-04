@@ -117,7 +117,7 @@ function fetchUsage() {
     if (paused) {
         return;
     }
-    fetch('/system/usage')
+    fetch('/api/system/usage')
         .then(response => response.json())
         .then(data => {
             // Update CPU
@@ -166,7 +166,7 @@ function fetchDisks() {
     const container = document.getElementById('disks-container');
     if (!container) return;
 
-    fetch('/system/usage/disks', { cache: 'no-store' })
+    fetch('/api/system/usage/disks', { cache: 'no-store' })
         .then(response => response.json())
         .then(data => {
             const disks = data || [];

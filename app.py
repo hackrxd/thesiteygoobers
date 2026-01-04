@@ -395,7 +395,7 @@ def sendFile(file):
     else:
         flask.abort(404)
 
-@app.route('/system/reboot', methods=['POST'])
+@app.route('/api/system/reboot', methods=['POST'])
 def reboot():
     if os.name == 'nt':
         os.system("shutdown /r /t 1")
@@ -403,22 +403,22 @@ def reboot():
         os.system("sudo reboot")
     return '', 204
 
-@app.route('/system')
+@app.route('/api/system')
 def system():
     return flask.abort(403)
 
-@app.route('/system/rename', methods=['POST'])
+@app.route('/api/system/rename', methods=['POST'])
 def rename():
     data = flask.request.get_json()
     config['name'] = data.get('name', 'Unnamed Device')
     save_config()
 
-@app.route('/system/name', methods=['GET'])
+@app.route('/api/system/name', methods=['GET'])
 def get_name():
     name = config.get('name', 'much wow, very dash')
     return flask.jsonify({"name": name})
 
-@app.route('/system/disks/add', methods=['POST'])
+@app.route('/api/system/disks/add', methods=['POST'])
 def add_disk():
     data = flask.request.get_json()
     disk_name = data.get('name', 'Unnamed Disk')
@@ -432,7 +432,7 @@ def add_disk():
     save_config()
     return '', 204
 
-@app.route('/system/disks/remove', methods=['POST'])
+@app.route('/api/system/disks/remove', methods=['POST'])
 def remove_disk():
     data = flask.request.get_json()
     disk_identifier = data.get('disk')
@@ -444,10 +444,12 @@ def remove_disk():
     return '', 204
 
 @app.route('/dashboard/create/disk', methods=['GET'])
+@app.route('/api/create/disk', methods=['GET'])
 def create_disk():
     return flask.send_file('createdisk.html')
 
 @app.route('/config/edit/', methods=['GET', 'POST'])
+@app.route('/api/config/edit', methods=['GET', 'POST'])
 def edit_config():
     if flask.request.method == 'GET':
         return flask.send_file('config.html')
@@ -457,7 +459,15 @@ def edit_config():
     save_config()
     return '', 200
 
-@app.route('/system/usage/disks', methods=['GET'])
+
+@app.route('/api/config/edit/log', methods=['POST'])
+def edit_config_log():
+    data = flask.request.get_json()
+    config['logLines'] = data.get('logLines', config.get('logLines', 10000))
+    save_config()
+    return '', 200
+
+@app.route('/api/system/usage/disks', methods=['GET'])
 def usage_disks():
     disks = []
     for disk, v in config.get('disks', {}).items():
@@ -576,7 +586,7 @@ logger_thread.start()
 
 fetches = 0
 
-@app.route('/log/download', methods=["GET"])
+@app.route('/api/log/download', methods=["GET"])
 def download_log():
     return flask.send_file('usage.log', as_attachment=True)
 
@@ -590,11 +600,11 @@ def get_graph_data():
     except:
         return flask.jsonify([])
 
-@app.route('/graphview', methods=["GET"])
+@app.route('/api/graphview', methods=["GET"])
 def graphview():
     return flask.send_file('graphview.html')
 
-@app.route('/system/usage', methods=["GET"])
+@app.route('/api/system/usage', methods=["GET"])
 def log_usage():
     ram = psutil.virtual_memory()
     cpu = psutil.cpu_percent(interval=1)
@@ -620,23 +630,23 @@ def log_usage():
     }
     return flask.jsonify(returnList)
 
-@app.route('/config/lines', methods=['GET'])
+@app.route('/api/config/lines', methods=['GET'])
 def get_log_lines():
     log_lines = config.get('logLines', 10000)
     return flask.jsonify({"logLines": log_lines})
 
-@app.route('/system/updates/check', methods=['GET'])
+@app.route('/api/system/updates/check', methods=['GET'])
 def api_check_updates():
     """Check for updates"""
     check_updates()
     return flask.jsonify(update_status)
 
-@app.route('/system/updates/status', methods=['GET'])
+@app.route('/api/system/updates/status', methods=['GET'])
 def api_update_status():
     """Get current update status"""
     return flask.jsonify(update_status)
 
-@app.route('/system/updates/apply', methods=['POST'])
+@app.route('/api/system/updates/apply', methods=['POST'])
 def api_apply_update():
     """Apply available update"""
     if not update_status["update_available"]:

@@ -1,14 +1,14 @@
 function reboot() {
     areyousure = confirm("Are you sure you want to reboot the system?");
     if (areyousure) {
-        fetch('/system/reboot', { method: 'POST' })
+        fetch('/api/system/reboot', { method: 'POST' })
     }
 }
 
 function rename() {
     const newName = prompt("Enter new hostname:");
     if (newName) {
-        fetch('/system/rename', {
+        fetch('/api/system/rename', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -23,14 +23,14 @@ function pauseButton() {
 }
 
 function addDisk() {
-    location.href = '/dashboard/create/disk'
+    location.href = '/api/create/disk'
 }
 
 function changeLog() {
     const newSize = prompt("Enter maximum number of log lines to keep (e.g., 10000):");
     const sizeInt = parseInt(newSize);
     if (!isNaN(sizeInt) && sizeInt > 0) {
-        fetch('/config/edit/log', {
+        fetch('/api/config/edit/log', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -45,11 +45,11 @@ function changeLog() {
 }
 
 function config() {
-    location.href = '/config/edit'
+    location.href = '/api/config/edit'
 }
 
 function downloadLog() {
-  location.href = '/log/download';
+    location.href = '/api/log/download';
 }
 
 function downloadUpdateLog() {
@@ -57,10 +57,10 @@ function downloadUpdateLog() {
 }
 
 function switchToGraph() {
-    window.open('/graphview', '_blank');
+    window.open('/api/graphview', '_blank');
 }
 
 function update() {
-    fetch('/system/updates/check', { method: 'GET' });
-    fetch('/system/updates/apply', { method: 'POST' });
+    fetch('/api/system/updates/check', { method: 'GET' });
+    fetch('/api/system/updates/apply', { method: 'POST' });
 }

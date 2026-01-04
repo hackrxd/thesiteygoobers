@@ -3,7 +3,7 @@ function initDisks() {
     // ensure shared chart map exists
     window.diskCharts = window.diskCharts || {};
 
-    fetch('/system/usage/disks', { cache: 'no-store' })
+    fetch('/api/system/usage/disks', { cache: 'no-store' })
         .then(response => response.json())
         .then(data => {
             const disksContainer = document.getElementById('disks-container');
@@ -42,7 +42,7 @@ function initDisks() {
                         delBtn.addEventListener('click', function () {
                             const decoded = decodeURIComponent(this.getAttribute('data-disk'));
                             if (!confirm('Are you sure you want to delete this disk?')) return;
-                            fetch('/system/disks/remove', {
+                            fetch('/api/system/disks/remove', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ disk: decoded })

@@ -65,7 +65,7 @@
                     return;
                 }
 
-                fetch('/system/disks/add', {
+                fetch('/api/system/disks/add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ disk: path, name: name, color: color })

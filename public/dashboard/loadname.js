@@ -1,6 +1,6 @@
 let nameElement = document.getElementById('name')
 function loadName() {
-fetch('/system/name')
+fetch('/api/system/name')
     .then(response => response.json())
     .then(data => {
         nameElement.innerText = data.name;
