@@ -26,7 +26,7 @@ function reconnect() {
 }
 
 function checkConnection() {
-    fetch('/api/system/usage', { cache: 'no-store' })
+    fetch('192.168.1.60:3000/system/usage', { cache: 'no-store' })
         .then(response => {
             if (!response.ok) {
                 reconnect();

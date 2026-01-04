@@ -1,5 +1,5 @@
 function getName() {
-    return fetch('/api/system/name')
+    return fetch('192.168.1.60:3000/system/name')
         .then(response => response.json())
         .then(data => data.name);
 }
@@ -10,7 +10,7 @@ async function updateName() {
 }
 
 function getLogLines() {
-    return fetch('/api/config/lines', { method: 'GET' })
+    return fetch('192.168.1.60:3000/config/lines', { method: 'GET' })
         .then(response => response.json())
         .then(data => data.logLines);
 }

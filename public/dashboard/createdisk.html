@@ -65,7 +65,7 @@
                     return;
                 }
 
-                fetch('/api/system/disks/add', {
+                fetch('192.168.1.60:3000/system/disks/add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ disk: path, name: name, color: color })
@@ -74,7 +74,7 @@
                         result.style.display = 'block';
                         result.style.color = '#86efac';
                         result.textContent = 'Disk created — returning to dashboard...';
-                        setTimeout(() => window.location.href = '/', 900);
+                        setTimeout(() => window.location.href = '/dashboard', 900);
                     } else {
                         return resp.json().then(j => { throw j; });
                     }
