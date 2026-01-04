@@ -45,22 +45,22 @@ function changeLog() {
 }
 
 function config() {
-    location.href = '192.168.1.60:3000/config/edit'
+    location.href = 'http://192.168.1.60:3000/config/edit'
 }
 
 function downloadLog() {
-    location.href = '192.168.1.60:3000/log/download';
+    location.href = 'http://192.168.1.60:3000/log/download';
 }
 
 function downloadUpdateLog() {
-  location.href = '192.168.1.60:3000/update.log';
+  location.href = 'http://192.168.1.60:3000/update.log';
 }
 
 function switchToGraph() {
-    window.open('192.168.1.60:3000/graphview', '_blank');
+    window.open('http://192.168.1.60:3000/graphview', '_blank');
 }
 
 function update() {
-    fetch('192.168.1.60:3000/system/updates/check', { method: 'GET' });
-    fetch('192.168.1.60:3000/system/updates/apply', { method: 'POST' });
+    fetch('http://192.168.1.60:3000/system/updates/check', { method: 'GET' });
+    fetch('http://192.168.1.60:3000/system/updates/apply', { method: 'POST' });
 }

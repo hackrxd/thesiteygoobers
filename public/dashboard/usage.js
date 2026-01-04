@@ -166,7 +166,7 @@ function fetchDisks() {
     const container = document.getElementById('disks-container');
     if (!container) return;
 
-    fetch('/api/system/usage/disks', { cache: 'no-store' })
+    fetch('http://192.168.1.60:3000/system/usage/disks', { cache: 'no-store' })
         .then(response => response.json())
         .then(data => {
             const disks = data || [];
